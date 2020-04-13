@@ -29,10 +29,24 @@ func init() {
 
 func runPodCmd(_ *cobra.Command, _ []string) error {
 
-	restConfig, err := util.RestConfig(flag.KubeconfigPath)
+	clientConfig, err := util.NewClientConfig(flag.KubeconfigPath)
 	if err != nil {
-		return fmt.Errorf("loading kubernetes restconfig: %w", err)
+		return fmt.Errorf("loading kubernetes client config: %w", err)
 	}
+
+	restConfig, err := clientConfig.ClientConfig()
+	if err != nil {
+		return fmt.Errorf("loading kubernetes rest config: %w", err)
+	}
+
+	if podFlags.Namespace == "" {
+		ns, err := util.GetNamespaceFromClientConfig(clientConfig)
+		if err != nil {
+			return fmt.Errorf("loading namespace from client config: %w", err)
+		}
+		podFlags.Namespace = ns
+	}
+
 	client, err := api.NewClient(restConfig)
 	if err != nil {
 		return fmt.Errorf("loading api client: %w", err)

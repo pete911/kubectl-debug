@@ -13,7 +13,7 @@ func InitPodFlags(cmd *cobra.Command, flags *Pod) {
 		&flags.Namespace,
 		"namespace",
 		"n",
-		"default",
+		"",
 		"kubernetes namespace",
 	)
 	cmd.Flags().StringVarP(
