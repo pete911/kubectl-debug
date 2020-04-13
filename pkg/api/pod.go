@@ -15,10 +15,9 @@ func (c *Client) GetAllPods(namespace string) ([]v1.Pod, error) {
 	return podList.Items, nil
 }
 
-func (c *Client) GetPods(namespace, appLabel string) ([]v1.Pod, error) {
+func (c *Client) GetPods(namespace, labelSelector string) ([]v1.Pod, error) {
 
-	label := fmt.Sprintf("app=%s", appLabel)
-	podList, err := c.coreV1.Pods(namespace).List(metav1.ListOptions{LabelSelector: label})
+	podList, err := c.coreV1.Pods(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return nil, fmt.Errorf("get pods: %w", err)
 	}
@@ -36,18 +35,4 @@ func (c *Client) GetLogs(namespace, name, container string, tailLines int64) (st
 		return "", fmt.Errorf("get logs: %w", err)
 	}
 	return string(b), nil
-}
-
-func ContainerState(state v1.ContainerState) string {
-
-	if state.Running != nil {
-		return "Running"
-	}
-	if state.Terminated != nil {
-		return fmt.Sprintf("Terminated: %s", state.Terminated.Reason)
-	}
-	if state.Waiting != nil {
-		return fmt.Sprintf("Waiting: %s", state.Waiting.Reason)
-	}
-	return ""
 }

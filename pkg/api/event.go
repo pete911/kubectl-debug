@@ -6,6 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// e.g. kubectl get event --namespace abc-namespace --field-selector involvedObject.name=my-pod-zl6m6
 func (c *Client) GetEvents(namespace, objectName string) ([]v1.Event, error) {
 
 	field := fmt.Sprintf("involvedObject.name=%s", objectName)

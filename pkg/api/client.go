@@ -9,7 +9,6 @@ import (
 )
 
 type Client struct {
-	hcomRestClient    rest.Interface
 	networkingV1Beta1 extensionsV1.ExtensionsV1beta1Interface
 	coreV1            corev1.CoreV1Interface
 	batchV1           batchv1.BatchV1Interface
