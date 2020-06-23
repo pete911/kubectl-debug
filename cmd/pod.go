@@ -3,9 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/pete911/kubectl-debug/cmd/flag"
-	"github.com/pete911/kubectl-debug/pkg/api"
 	"github.com/pete911/kubectl-debug/pkg/debug"
-	"github.com/pete911/kubectl-debug/util"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -29,33 +27,18 @@ func init() {
 
 func runPodCmd(_ *cobra.Command, _ []string) error {
 
-	clientConfig, err := util.NewClientConfig(flag.KubeconfigPath)
+	d, err := getDebug(flag.KubeconfigPath)
 	if err != nil {
-		return fmt.Errorf("loading kubernetes client config: %w", err)
+		return fmt.Errorf("get debug client: %w", err)
 	}
 
-	restConfig, err := clientConfig.ClientConfig()
-	if err != nil {
-		return fmt.Errorf("loading kubernetes rest config: %w", err)
+	if podFlags.AllNamespaces {
+		podFlags.Namespace = ""
 	}
 
-	if podFlags.Namespace == "" {
-		ns, err := util.GetNamespaceFromClientConfig(clientConfig)
-		if err != nil {
-			return fmt.Errorf("loading namespace from client config: %w", err)
-		}
-		podFlags.Namespace = ns
-	}
-
-	client, err := api.NewClient(restConfig)
-	if err != nil {
-		return fmt.Errorf("loading api client: %w", err)
-	}
-
-	d := debug.NewDebug(client)
 	pods, err := d.Pods(podFlags.Namespace, podFlags.Label)
 	if err != nil {
-		return fmt.Errorf("getting pods: %w", err)
+		return fmt.Errorf("get pods: %w", err)
 	}
 
 	if len(pods) == 0 {
@@ -69,15 +52,13 @@ func runPodCmd(_ *cobra.Command, _ []string) error {
 func printPods(pods []debug.Pod) {
 
 	for _, pod := range pods {
-		fmt.Printf("Pod: %s\n", pod.Name)
+		fmt.Printf("--- [Namespace: %s Pod: %s] ---\n", pod.Namespace, pod.Name)
+		fmt.Println("Labels:")
+		printMap(pod.Labels, 2)
+		fmt.Println("Annotations:")
+		printMap(pod.Annotations, 2)
 		fmt.Println("Events:")
-		if pod.Events == "" {
-			fmt.Printf("  -\n")
-		} else {
-			for _, event := range strings.Split(pod.Events, "\n") {
-				fmt.Printf("  %s\n", event)
-			}
-		}
+		printList(strings.Split(pod.Events, "\n"), 2)
 
 		for _, container := range pod.Containers {
 			fmt.Printf("Container: %s\n", container.Name)
@@ -89,14 +70,30 @@ func printPods(pods []debug.Pod) {
 			fmt.Printf("  Last State:   %s\n", container.LastTerminationState)
 			fmt.Println("  Logs:")
 
-			if container.Logs == "" {
-				fmt.Printf("    -\n")
-			} else {
-				for _, log := range strings.Split(container.Logs, "\n") {
-					fmt.Printf("    %s\n", log)
-				}
-			}
+			printList(strings.Split(container.Logs, "\n"), 4)
 		}
 		fmt.Println()
+	}
+}
+
+func printList(items []string, indent int) {
+
+	if len(items) == 0 || (len(items) == 1 && items[0] == "") {
+		fmt.Printf("%s-\n", strings.Repeat(" ", indent))
+		return
+	}
+	for _, item := range items {
+		fmt.Printf("%s%s\n", strings.Repeat(" ", indent), item)
+	}
+}
+
+func printMap(items map[string]string, indent int) {
+
+	if len(items) == 0 {
+		fmt.Printf("%s-\n", strings.Repeat(" ", indent))
+		return
+	}
+	for k, v := range items {
+		fmt.Printf("%s%s: %s\n", strings.Repeat(" ", indent), k, v)
 	}
 }

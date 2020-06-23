@@ -3,8 +3,9 @@ package flag
 import "github.com/spf13/cobra"
 
 type Pod struct {
-	Namespace string
-	Label     string
+	Namespace     string
+	AllNamespaces bool
+	Label         string
 }
 
 func InitPodFlags(cmd *cobra.Command, flags *Pod) {
@@ -15,6 +16,13 @@ func InitPodFlags(cmd *cobra.Command, flags *Pod) {
 		"n",
 		"",
 		"kubernetes namespace",
+	)
+	cmd.Flags().BoolVarP(
+		&flags.AllNamespaces,
+		"all-namespaces",
+		"A",
+		false,
+		"all kubernetes namespaces",
 	)
 	cmd.Flags().StringVarP(
 		&flags.Label,

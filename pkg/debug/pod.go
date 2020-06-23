@@ -7,9 +7,12 @@ import (
 )
 
 type Pod struct {
-	Name       string
-	Events     string
-	Containers []Container
+	Name        string
+	Namespace   string
+	Labels      map[string]string
+	Annotations map[string]string
+	Events      string
+	Containers  []Container
 }
 
 type Container struct {
@@ -25,16 +28,28 @@ type Container struct {
 
 func (d *Debug) Pods(namespace, labelSelector string) ([]Pod, error) {
 
+	if namespace == "" {
+		v1Pods, err := d.client.GetAllPods(labelSelector)
+		if err != nil {
+			return nil, fmt.Errorf("get all pods %w", err)
+		}
+		return d.toPods(v1Pods), nil
+	}
+
 	v1Pods, err := d.client.GetPods(namespace, labelSelector)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get pods %w", err)
 	}
+	return d.toPods(v1Pods), nil
+}
+
+func (d *Debug) toPods(v1Pods []v1.Pod) []Pod {
 
 	var pods []Pod
 	for _, pod := range v1Pods {
 		pods = append(pods, d.toPod(pod))
 	}
-	return pods, nil
+	return pods
 }
 
 func (d *Debug) toPod(v1Pod v1.Pod) Pod {
@@ -48,7 +63,13 @@ func (d *Debug) toPod(v1Pod v1.Pod) Pod {
 		containers = append(containers, toContainer(containerStatus, strings.TrimSpace(logs)))
 	}
 
-	pod := Pod{Name: v1Pod.Name, Containers: containers}
+	pod := Pod{
+		Name:        v1Pod.Name,
+		Namespace:   v1Pod.Namespace,
+		Labels:      v1Pod.Labels,
+		Annotations: v1Pod.Annotations,
+		Containers:  containers,
+	}
 
 	v1Events, err := d.client.GetEvents(v1Pod.Namespace, v1Pod.Name)
 	if err != nil {
