@@ -33,15 +33,11 @@ func (c *Client) GetPods(namespace, labelSelector, fieldSelector string) ([]v1.P
 	return podList.Items, nil
 }
 
-func (c *Client) GetLogs(namespace, name, container string, tailLines int64) (string, error) {
+func (c *Client) GetLogs(namespace, name, container string, tailLines int64) ([]byte, error) {
 
 	podLogOptions := &v1.PodLogOptions{
 		Container: container,
 		TailLines: &tailLines,
 	}
-	b, err := c.coreV1.Pods(namespace).GetLogs(name, podLogOptions).Do().Raw()
-	if err != nil {
-		return "", fmt.Errorf("get logs: %w", err)
-	}
-	return string(b), nil
+	return c.coreV1.Pods(namespace).GetLogs(name, podLogOptions).Do().Raw()
 }
