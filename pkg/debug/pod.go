@@ -26,17 +26,17 @@ type Container struct {
 	Logs                 string
 }
 
-func (d *Debug) Pods(namespace, labelSelector string) ([]Pod, error) {
+func (d *Debug) Pods(namespace, labelSelector, fieldSelector string) ([]Pod, error) {
 
 	if namespace == "" {
-		v1Pods, err := d.client.GetAllPods(labelSelector)
+		v1Pods, err := d.client.GetAllPods(labelSelector, fieldSelector)
 		if err != nil {
 			return nil, fmt.Errorf("get all pods %w", err)
 		}
 		return d.toPods(v1Pods), nil
 	}
 
-	v1Pods, err := d.client.GetPods(namespace, labelSelector)
+	v1Pods, err := d.client.GetPods(namespace, labelSelector, fieldSelector)
 	if err != nil {
 		return nil, fmt.Errorf("get pods %w", err)
 	}

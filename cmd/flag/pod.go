@@ -6,6 +6,7 @@ type Pod struct {
 	Namespace     string
 	AllNamespaces bool
 	Label         string
+	FieldSelector string
 }
 
 func InitPodFlags(cmd *cobra.Command, flags *Pod) {
@@ -30,5 +31,12 @@ func InitPodFlags(cmd *cobra.Command, flags *Pod) {
 		"l",
 		"",
 		"kubernetes label",
+	)
+	cmd.Flags().StringVarP(
+		&flags.FieldSelector,
+		"field-selector",
+		"",
+		"",
+		"kubernetes field selector",
 	)
 }

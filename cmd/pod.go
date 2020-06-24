@@ -25,7 +25,7 @@ func init() {
 	flag.InitPodFlags(cmdPod, &podFlags)
 }
 
-func runPodCmd(_ *cobra.Command, _ []string) error {
+func runPodCmd(_ *cobra.Command, args []string) error {
 
 	d, err := getDebug(flag.KubeconfigPath)
 	if err != nil {
@@ -36,7 +36,13 @@ func runPodCmd(_ *cobra.Command, _ []string) error {
 		podFlags.Namespace = ""
 	}
 
-	pods, err := d.Pods(podFlags.Namespace, podFlags.Label)
+	if len(args) > 0 {
+		fieldSelectors := strings.Split(podFlags.FieldSelector, ",")
+		fieldSelectors = append(fieldSelectors, fmt.Sprintf("metadata.name=%s", args[0]))
+		podFlags.FieldSelector = strings.Join(fieldSelectors, ",")
+	}
+
+	pods, err := d.Pods(podFlags.Namespace, podFlags.Label, podFlags.FieldSelector)
 	if err != nil {
 		return fmt.Errorf("get pods: %w", err)
 	}

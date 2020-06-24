@@ -6,7 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (c *Client) GetAllPods(labelSelector string) ([]v1.Pod, error) {
+func (c *Client) GetAllPods(labelSelector, fieldSelector string) ([]v1.Pod, error) {
 
 	namespaces, err := c.GetNamespaces()
 	if err != nil {
@@ -15,7 +15,7 @@ func (c *Client) GetAllPods(labelSelector string) ([]v1.Pod, error) {
 
 	var pods []v1.Pod
 	for _, namespace := range namespaces {
-		p, err := c.GetPods(namespace.Name, labelSelector)
+		p, err := c.GetPods(namespace.Name, labelSelector, fieldSelector)
 		if err != nil {
 			return nil, err
 		}
@@ -24,9 +24,9 @@ func (c *Client) GetAllPods(labelSelector string) ([]v1.Pod, error) {
 	return pods, nil
 }
 
-func (c *Client) GetPods(namespace, labelSelector string) ([]v1.Pod, error) {
+func (c *Client) GetPods(namespace, labelSelector, fieldSelector string) ([]v1.Pod, error) {
 
-	podList, err := c.coreV1.Pods(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+	podList, err := c.coreV1.Pods(namespace).List(metav1.ListOptions{LabelSelector: labelSelector, FieldSelector: fieldSelector})
 	if err != nil {
 		return nil, err
 	}

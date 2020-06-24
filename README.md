@@ -14,3 +14,4 @@ Project needs to be built and binary placed on path.
 
  - get all pods under a namespace `kubectl debug pod -n kube-system`
  - select pods by label `kubectl debug pod -n kube-system -l integration-test=storage-provisioner`
+ - specific pod `kubectl debug pod -n kube-system coredns-66bff467f8-7mz46`
