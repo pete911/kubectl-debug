@@ -27,7 +27,7 @@ func (c Container) Print(w io.Writer) {
 	fmt.Fprintf(w, "  Restart:      %d\n", c.RestartCount)
 	fmt.Fprintf(w, "  State:        %s\n", c.State)
 	fmt.Fprintf(w, "  Last State:   %s\n", c.LastTerminationState)
-	fmt.Fprintf(w, "  Logs:")
+	fmt.Fprintf(w, "  Logs:\n")
 
 	format.StringList(w, c.Logs, 4)
 }

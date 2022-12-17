@@ -1,21 +1,22 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (c *Client) GetAllPods(labelSelector, fieldSelector string) ([]v1.Pod, error) {
+func (c *Client) GetAllPods(ctx context.Context, labelSelector, fieldSelector string) ([]v1.Pod, error) {
 
-	namespaces, err := c.GetNamespaces()
+	namespaces, err := c.GetNamespaces(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get namespaces: %w", err)
 	}
 
 	var pods []v1.Pod
 	for _, namespace := range namespaces {
-		p, err := c.GetPods(namespace.Name, labelSelector, fieldSelector)
+		p, err := c.GetPods(ctx, namespace.Name, labelSelector, fieldSelector)
 		if err != nil {
 			return nil, err
 		}
@@ -24,20 +25,20 @@ func (c *Client) GetAllPods(labelSelector, fieldSelector string) ([]v1.Pod, erro
 	return pods, nil
 }
 
-func (c *Client) GetPods(namespace, labelSelector, fieldSelector string) ([]v1.Pod, error) {
+func (c *Client) GetPods(ctx context.Context, namespace, labelSelector, fieldSelector string) ([]v1.Pod, error) {
 
-	podList, err := c.coreV1.Pods(namespace).List(metav1.ListOptions{LabelSelector: labelSelector, FieldSelector: fieldSelector})
+	podList, err := c.coreV1.Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector, FieldSelector: fieldSelector})
 	if err != nil {
 		return nil, err
 	}
 	return podList.Items, nil
 }
 
-func (c *Client) GetLogs(namespace, name, container string, tailLines int64) ([]byte, error) {
+func (c *Client) GetLogs(ctx context.Context, namespace, name, container string, tailLines int64) ([]byte, error) {
 
 	podLogOptions := &v1.PodLogOptions{
 		Container: container,
 		TailLines: &tailLines,
 	}
-	return c.coreV1.Pods(namespace).GetLogs(name, podLogOptions).Do().Raw()
+	return c.coreV1.Pods(namespace).GetLogs(name, podLogOptions).Do(ctx).Raw()
 }

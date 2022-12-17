@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"github.com/pete911/kubectl-debug/cmd/flag"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -28,6 +30,9 @@ func init() {
 
 func runPodCmd(_ *cobra.Command, args []string) error {
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	d, err := getDebug(flag.KubeconfigPath)
 	if err != nil {
 		return fmt.Errorf("get debug client: %w", err)
@@ -43,7 +48,7 @@ func runPodCmd(_ *cobra.Command, args []string) error {
 		podFlags.FieldSelector = strings.Join(fieldSelectors, ",")
 	}
 
-	pods, err := d.Pods(podFlags.Namespace, podFlags.Label, podFlags.FieldSelector)
+	pods, err := d.Pods(ctx, podFlags.Namespace, podFlags.Label, podFlags.FieldSelector)
 	if err != nil {
 		return fmt.Errorf("get pods: %w", err)
 	}
