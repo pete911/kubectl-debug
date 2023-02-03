@@ -1,13 +1,13 @@
 package util
 
 import (
-	"io/ioutil"
 	"k8s.io/client-go/tools/clientcmd"
+	"os"
 )
 
 func NewClientConfig(kubeconfigPath string) (clientcmd.ClientConfig, error) {
 
-	configBytes, err := ioutil.ReadFile(kubeconfigPath)
+	configBytes, err := os.ReadFile(kubeconfigPath)
 	if err != nil {
 		return nil, err
 	}
